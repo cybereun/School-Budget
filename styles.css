@@ -614,6 +614,8 @@ body { font-size: 16px; }
 .table-row .row-action svg { width: 13px; height: 13px; transition: transform .2s ease; }
 .table-row-wrap.is-expanded > .table-row .row-action svg, .nested-entry.is-expanded > .nested-entry-arrow svg { transform: rotate(90deg); }
 .nested-list { padding: 0 22px 18px 38px; background: #f8faff; }
+.nested-list { width: 100%; max-width: none; box-sizing: border-box; }
+.nested-entry > .nested-list { grid-column: 1 / -1; min-width: 0; }
 .nested-heading { display: flex; justify-content: space-between; gap: 14px; padding: 16px 16px 10px; color: var(--muted); }
 .nested-heading strong { color: var(--blue-deep); font-size: 14px; }
 .nested-heading span { font-size: 12px; }
