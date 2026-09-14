@@ -402,7 +402,9 @@ function renderGraphCard(item, rows) {
 
 function childRowsFor(parent, rows, depth = 0) {
   if (state.level === 'detail') return [];
-  const source = rows.filter(item => state.level === 'business' ? item.business === parent.business : item.business === parent.business && item.item === parent.item);
+  const source = rows.filter(item => state.level === 'business' && depth === 0
+    ? item.business === parent.business
+    : item.business === parent.business && item.item === parent.item);
   if (state.level === 'business' && depth === 0) {
     const map = new Map();
     source.forEach(item => {
