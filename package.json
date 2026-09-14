@@ -1,0 +1,10 @@
+{
+  "name": "school-budget-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "로컬 전용 학교회계 예산현황판",
+  "scripts": {
+    "dev": "python -m http.server 4173 --bind 127.0.0.1",
+    "start": "python -m http.server 4173 --bind 127.0.0.1"
+  }
+}

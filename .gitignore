@@ -1,0 +1,15 @@
+# 개인 원본 예산 파일은 리포지토리에 올리지 않습니다.
+*.xlsx
+*.xls
+*.csv
+*.ods
+
+# 운영체제·편집기 파일
+.DS_Store
+Thumbs.db
+.vscode/
+
+# 의존성·빌드 산출물
+node_modules/
+dist/
+build/
