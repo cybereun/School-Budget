@@ -5,6 +5,7 @@
 const app = document.querySelector('#app');
 const fileInput = document.querySelector('#file-input');
 const PLAN_KEY = 'school-budget-viewer-plans-v1';
+const DATA_KEY = 'school-budget-viewer-data-v1';
 const UNASSIGNED_MANAGER = '__unassigned__';
 
 const icons = {
@@ -69,6 +70,49 @@ const getPlans = () => {
   try { return JSON.parse(localStorage.getItem(PLAN_KEY) || '{}'); } catch { return {}; }
 };
 const savePlans = plans => localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
+
+function saveDataset() {
+  try {
+    localStorage.setItem(DATA_KEY, JSON.stringify({
+      version: 1,
+      rows: state.rows,
+      schoolwideRows: state.schoolwideRows,
+      sourceName: state.sourceName,
+      sourceType: state.sourceType,
+      sourceSheet: state.sourceSheet
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function restoreDataset() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DATA_KEY) || 'null');
+    if (!saved || (!Array.isArray(saved.rows) && !Array.isArray(saved.schoolwideRows))) return;
+    const plans = getPlans();
+    state.rows = Array.isArray(saved.rows) ? saved.rows.map(item => ({ ...item, planned: numberValue(plans[item.id]?.amount || item.planned) })) : [];
+    state.schoolwideRows = Array.isArray(saved.schoolwideRows) ? saved.schoolwideRows : [];
+    if (!state.rows.length && !state.schoolwideRows.length) return;
+    state.sourceName = saved.sourceName || '';
+    state.sourceType = saved.sourceType || 'business';
+    state.sourceSheet = saved.sourceSheet || '';
+    state.hasData = true;
+    state.isDemo = false;
+    state.manager = 'all';
+    state.search = '';
+    state.cost = 'all';
+    state.status = 'all';
+    state.level = 'business';
+    state.exploreMode = 'graph';
+    state.expandedKeys.clear();
+    state.selectedId = state.rows[0]?.id || '';
+    state.view = state.sourceType === 'schoolwide' ? 'schoolwide' : 'overview';
+  } catch {
+    localStorage.removeItem(DATA_KEY);
+  }
+}
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
@@ -481,7 +525,8 @@ async function handleFiles(files, mode = 'business') {
     } else {
       state.sourceName = file.name; state.sourceSheet = parsed.sheet; state.schoolwideRows = parsed.rows; state.hasData = true; state.isDemo = false; state.sourceType = 'schoolwide'; state.view = 'schoolwide';
     }
-    state.busy = false; render(); showToast(`${parsed.rows.length.toLocaleString('ko-KR')}개 항목을 불러왔습니다. ${labelForSource(parsed.type)}로 판별했어요.`);
+    const saved = saveDataset();
+    state.busy = false; render(); showToast(saved ? `${parsed.rows.length.toLocaleString('ko-KR')}개 항목을 불러왔습니다. 다음 접속에도 이 브라우저에서 이어서 볼 수 있어요.` : `${parsed.rows.length.toLocaleString('ko-KR')}개 항목을 불러왔습니다. 브라우저 저장 공간이 부족해 이번 접속에서만 유지됩니다.`);
   } catch (error) {
     state.busy = false; render(); showToast(`파일을 읽지 못했습니다. ${error.message || '헤더와 숫자 열을 확인해 주세요.'}`);
   }
@@ -595,6 +640,7 @@ function isSubtotalRow(item) {
 function clearData() {
   const deletePlans = window.confirm('화면의 엑셀 자료를 비우고, 저장된 집행계획·메모도 함께 지울까요?');
   state.rows = []; state.schoolwideRows = []; state.hasData = false; state.isDemo = false; state.sourceName = ''; state.sourceSheet = ''; state.selectedId = ''; state.manager = 'all'; state.view = 'overview';
+  localStorage.removeItem(DATA_KEY);
   if (deletePlans) localStorage.removeItem(PLAN_KEY);
   render(); showToast(deletePlans ? '엑셀과 입력값을 모두 비웠습니다.' : '엑셀 자료를 비웠습니다.');
 }
@@ -705,4 +751,5 @@ function saveInlinePlan(id) {
   showToast('집행계획을 브라우저에 저장했습니다.');
 }
 
+restoreDataset();
 render();
